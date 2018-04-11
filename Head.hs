@@ -7,3 +7,9 @@ data Formula = Or Formula Formula
              | Proposition String
              | Falsum
              deriving (Eq,Show)
+
+data LabeledFormula = T Formula | F Formula
+
+type Branch = [LabeledFormula]
+
+data Tableaux = Closed Branch | Open Branch
