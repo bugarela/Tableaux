@@ -1,5 +1,6 @@
 module Parser where
 import Text.Parsec
+import Text.Parsec.Expr
 import Text.Parsec.Token
 import Text.Parsec.Language
 import Data.Char
@@ -21,14 +22,15 @@ reserv = "()->{}\n "
 context :: Parsec String () [Formula]
 context = do {fs <- many formula; return fs}
 
-formula :: Parsec String () (Formula)
-formula = (do try $ implFormula) <|> formula'
+formula = buildExpressionParser logicOperators singleFormula
 
-formula' :: Parsec String () (Formula)
-formula' = (do try $ orFormula) <|> (do try $ andFormula) <|> formula''
+logicOperators :: [[Operator String u Identity Formula]]
+logicOperators = [[Prefix (char '¬' >> spaces >> return (Not))],
 
-formula'' :: Parsec String () (Formula)
-formula'' = (do try $ notFormula) <|> singleFormula
+                  [Infix  (char '^' >> spaces >> return (And)) AssocLeft,
+                   Infix (char 'v' >> spaces >> return (Or)) AssocLeft],
+
+                  [Infix (string "->" >> spaces >> return (Impl)) AssocLeft]]
 
 singleFormula :: Parsec String () (Formula)
 singleFormula = do char '('
@@ -39,36 +41,6 @@ singleFormula = do char '('
                    spaces
                    return f
                 <|> falsum <|> proposition
-
-implFormula = do l <- formula'
-                 spaces
-                 string "->"
-                 spaces
-                 r <- formula'
-                 spaces
-                 return (Impl l r)
-
-orFormula = do l <- formula''
-               spaces
-               string "v"
-               spaces
-               r <- formula''
-               spaces
-               return (Or l r)
-
-andFormula = do l <- formula''
-                spaces
-                string "^"
-                spaces
-                r <- formula''
-                spaces
-                return (And l r)
-
-notFormula = do char '¬'
-                spaces
-                f <- singleFormula
-                spaces
-                return (Not f)
 
 falsum = do {string "0"; spaces; return (Falsum)}
 proposition = do {p <- many1 (noneOf reserv); spaces; return (Proposition p)}
