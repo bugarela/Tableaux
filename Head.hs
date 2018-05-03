@@ -16,11 +16,11 @@ data LabeledBranch = Closed Branch | Open Branch deriving (Eq,Show)
 
 data MaybeSaturated = Unsaturated ([LabeledFormula],[LabeledFormula]) | Saturated
 
-data Tableaux = FalseValue [(String,Bool)] Int | Proved Int
+data Tableaux = FalseValue [(String,Bool)] Int Int | Proved Int Int
 
 instance Show Tableaux where
-    show (FalseValue a n) = "False - " ++ show a ++ "\nNumber of branches: " ++ show n
-    show (Proved n) = "True" ++ "\nNumber of branches: " ++ show n
+    show (FalseValue v b r) = "False - " ++ show v ++ "\nNumber of branches: " ++ show b ++ "\nNumber of rules applied: " ++ show r
+    show (Proved b r) = "True" ++ "\nNumber of branches: " ++ show b ++ "\nNumber of rules applied: " ++ show r
 
 instance Show Formula where
     show (Or a b) = show a ++ " v " ++ show b

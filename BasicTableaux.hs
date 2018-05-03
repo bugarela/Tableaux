@@ -12,7 +12,7 @@ provePrefix a = do as <- parseFile' a
 
 tableaux' g p = let g' = map (\x -> T x) g
                     p' = F p
-                in tableaux 1 (Open (g' ++ [p']))
+                in tableaux 1 0 (Open (g' ++ [p']))
 
 proveFile (gs,p) = case p of
                       Left err -> print err
@@ -20,12 +20,12 @@ proveFile (gs,p) = case p of
                                     Right s -> print (tableaux' (fold s) p)
                                     Left errs -> print errs
 
-tableaux n (Closed fs) = Proved n
-tableaux n (Open fs) = let a = alphas fs in case a of
-                         Unsaturated (fs,as) -> tableaux n (tryToClose (fs ++ as))
-                         Saturated -> let b = betas (reverse fs) in case b of
-                                                Unsaturated (fs,[b1,b2]) -> branch (tableaux (n+1) (tryToClose (fs ++ [b1]))) (tableaux (n+1) (tryToClose (fs ++ [b2])))
-                                                Saturated -> FalseValue (values fs) n
+tableaux b r (Closed fs) = Proved b r
+tableaux b r (Open fs) = let a = alphas fs in case a of
+                            Unsaturated (fs,as) -> tableaux b (r+1) (tryToClose (fs ++ as))
+                            Saturated -> let bs = betas (reverse fs) in case bs of
+                                                   Unsaturated (fs,[b1,b2]) -> branch (tableaux (b+1) (r+1) (tryToClose (fs ++ [b1]))) (tableaux (b+1) (r+1) (tryToClose (fs ++ [b2])))
+                                                   Saturated -> FalseValue (values fs) b r
 
 alphas fs = alphas' fs []
 alphas' [] _ = Saturated
@@ -58,9 +58,9 @@ values ((T (Proposition p)):fs) = (p,True):values fs
 values ((F (Proposition p)):fs) = (p,False):values fs
 values (f:fs) = values fs
 
-branch (FalseValue a n) _ = (FalseValue a n) -- lazy ftw
-branch (Proved m) (FalseValue a n) = (FalseValue a (n+m))
-branch (Proved n) (Proved m) = Proved (n+m)
+branch (FalseValue v b r) _ = (FalseValue v b r) -- lazy ftw
+branch (Proved b1 r1) (FalseValue v b2 r2) = (FalseValue v (b1+b2) (r1+r2))
+branch (Proved b1 r1) (Proved b2 r2) = Proved (b1+b2) (r1+r2)
 
 
 -- ugly stuff down here

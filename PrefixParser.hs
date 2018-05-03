@@ -3,7 +3,6 @@ import Text.Parsec
 import Text.Parsec.Token
 import Text.Parsec.Language
 import Data.Char
-import Data.List.Split (splitOn)
 import Head
 
 import Control.Monad.Identity (Identity)
