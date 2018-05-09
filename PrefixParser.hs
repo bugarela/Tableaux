@@ -10,7 +10,7 @@ import Control.Monad.Identity (Identity)
 {-# LANGUAGE NoMonomorphismRestriction #-}
 
 parseFile' a = do f <- readFile a
-                  let ls = lines f
+                  let (l:ls) = lines f -- ignore first line
                   let ds = map (parse context "Error:") (init ls)
                   let e = parse formula "Error:" (last ls)
                   return (ds,e)

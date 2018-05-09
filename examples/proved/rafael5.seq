@@ -1,0 +1,6 @@
+a1 v b1
+a1 -> (a2 v b2)
+b1 -> (a2 v b2)
+a2 -> (a3 v b3)
+b2 -> (a3 v b3)
+a3 v b3
