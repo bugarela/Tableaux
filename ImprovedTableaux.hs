@@ -31,6 +31,24 @@ tableaux' g p = let g' = map (\x -> T x) g
                     p' = F p
                 in tableaux 1 0 (Open (g' ++ [p']))
 
+switchPolarity (Not a) = a
+switchPolarity a = Not a
+
+formulaSize (Falsum) = 1
+formulaSize (Proposition _) = 1
+formulaSize (Not a) = 1 + formulaSize a
+formulaSize (And a b) = 1 + formulaSize a + formulaSize b
+formulaSize (Or a b) = 1 + formulaSize a + formulaSize b
+formulaSize (Impl a b) = 1 + formulaSize a + formulaSize b
+
+shortestSubFormula' [f] m = if (thisSize > m) then thisSize else m where thisSize = formulaSize f
+shortestSubFormula' (f:fs) m = if (thisSize > m) then shortestSubFormula' f thisSize else shortestSubFormula' fs m where thisSize = formulaSize f
+
+lookupSubFormulas (f:fs) = undefined
+
+unLabel (T a) = a
+unLabel (F a) = a
+
 alphas fs = alphas' fs []
 alphas' [] _ = Saturated
 alphas' (f:fs) rs = if alphaf /= [] then Unsaturated (rs ++ fs,alphaf) else (alphas' fs (rs ++ [f])) where alphaf = alpha f

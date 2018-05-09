@@ -1,4 +1,4 @@
 p1 v q1
 ((p1 v q1) -> p2) v ((p1 v q1) -> q2)
-(((p1 v q1) ^ (p2 v q2)) -> p3) v (((p1 v q1) v (p2 v q2)) -> q3)
+(((p1 v q1) ^ (p2 v q2)) -> p3) v (((p1 v q1) ^ (p2 v q2)) -> q3)
 p3 v q3
