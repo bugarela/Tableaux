@@ -23,16 +23,16 @@ proveFile (gs,p) = case p of
 tableaux b r (Closed fs) = Proved b r
 tableaux b r (Open fs) = let a = alphas fs in case a of
                             Unsaturated (fs,as) -> tableaux b (r+1) (tryToClose (fs ++ as))
-                            Saturated -> let bs = betas (reverse fs) in case bs of
-                                                   Unsaturated (fs,[b1,b2]) -> branch (tableaux (b+1) (r+1) (tryToClose (fs ++ [b1]))) (tableaux (b+1) (r+1) (tryToClose (fs ++ [b2])))
+                            Saturated -> let bs = betas fs in case bs of
+                                                   Unsaturated (fs,[b1,b2]) -> branch (tableaux b (r+1) (tryToClose (fs ++ [b1]))) (tableaux b 0 (tryToClose (fs ++ [b2])))
                                                    Saturated -> FalseValue (values fs) b r
 
 tableaux' g p = let g' = map (\x -> T x) g
                     p' = F p
-                in tableaux 1 0 (Open (g' ++ [p']))
+                in tableaux 1 0 (tryToClose (g' ++ [p']))
 
-switchPolarity (Not a) = a
-switchPolarity a = Not a
+switchPolarity (F a) = T a
+switchPolarity (T a) = F a
 
 formulaSize (Falsum) = 1
 formulaSize (Proposition _) = 1
@@ -41,10 +41,15 @@ formulaSize (And a b) = 1 + formulaSize a + formulaSize b
 formulaSize (Or a b) = 1 + formulaSize a + formulaSize b
 formulaSize (Impl a b) = 1 + formulaSize a + formulaSize b
 
-shortestSubFormula' [f] m = if (thisSize > m) then thisSize else m where thisSize = formulaSize f
-shortestSubFormula' (f:fs) m = if (thisSize > m) then shortestSubFormula' f thisSize else shortestSubFormula' fs m where thisSize = formulaSize f
+-- Isolate best formula beta according to rankSubFormula, returns (rest,bestFormula)
+bestFormula (f:fs) = bestFormula' fs f [] (rankSubFormula f fs) fs
+bestFormula' [a] f rs m fs = if (rank > m) then (f:rs,a) else (a:rs,f) where rank = rankSubFormula a fs
+bestFormula' (a:as) f rs m fs = if (rank > m) then bestFormula' as a (f:rs) rank fs else bestFormula' as f (a:rs) m fs where rank = rankSubFormula a fs
 
-lookupSubFormulas (f:fs) = undefined
+rankSubFormula a fs = (lookupSubFormulas (map switchPolarity (beta a)) fs)  / (formulaSize (unLabel a))
+
+lookupSubFormulas [] _ = 0
+lookupSubFormulas (s:ss) fs = (if ((filter (== s) fs) /= []) then 2 else 1) + lookupSubFormulas ss fs
 
 unLabel (T a) = a
 unLabel (F a) = a
@@ -60,9 +65,9 @@ alpha (F (Or a b)) = [F a,F b]
 alpha (F (Impl a b)) = [T a,F b]
 alpha _ = []
 
-betas fs = betas' fs []
-betas' [] _ = Saturated
-betas' (f:fs) rs = if betaf /= [] then Unsaturated (reverse (rs ++ fs),betaf) else (betas' fs (rs ++ [f])) where betaf = beta f
+betas fs = if betaf /= [] then Unsaturated (rs,betaf) else Saturated where
+                    (rs,f) = bestFormula fs
+                    betaf = beta f
 
 beta (F (And a b)) = [F a,F b]
 beta (T (Or a b)) = [T a,T b]
@@ -73,6 +78,7 @@ beta _ = []
 tryToClose fs = if closed fs then Closed fs else Open fs
 
 closed [] = False
+closed (T Falsum:_) = True
 closed (T f:fs) = if (filter (== (F f)) fs) /= [] then True else closed fs
 closed (F f:fs) = if (filter (== (T f)) fs) /= [] then True else closed fs
 

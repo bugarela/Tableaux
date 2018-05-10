@@ -16,7 +16,7 @@ parseFile a = do f <- readFile a
                  let e = parse formula "Error:" (last ls)
                  return (ds,e)
 
-reserv = "()->{}\n "
+reserv = "()->~{}\n "
 
 context :: Parsec String () [Formula]
 context = do {fs <- many formula; return fs}
@@ -24,7 +24,7 @@ context = do {fs <- many formula; return fs}
 formula = buildExpressionParser logicOperators singleFormula
 
 logicOperators :: [[Operator String u Identity Formula]]
-logicOperators = [[Prefix (char '¬' >> spaces >> return (Not))],
+logicOperators = [[Prefix (char '~' >> spaces >> return (Not))],
 
                   [Infix  (char '^' >> spaces >> return (And)) AssocLeft,
                    Infix (char 'v' >> spaces >> return (Or)) AssocLeft],

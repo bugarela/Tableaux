@@ -15,7 +15,7 @@ parseFile' a = do f <- readFile a
                   let e = parse formula "Error:" (last ls)
                   return (ds,e)
 
-reserv = "0-*+)\n "
+reserv = "-*+)\n "
 
 context :: Parsec String () [Formula]
 context = do {fs <- many formula; return fs}

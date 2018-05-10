@@ -23,13 +23,13 @@ proveFile (gs,p) = case p of
 tableaux b r (Closed fs) = Proved b r
 tableaux b r (Open fs) = let a = alphas fs in case a of
                             Unsaturated (fs,as) -> tableaux b (r+1) (tryToClose (fs ++ as))
-                            Saturated -> let bs = betas (reverse fs) in case bs of
-                                                   Unsaturated (fs,[b1,b2]) -> branch (tableaux (b+1) (r+1) (tryToClose (fs ++ [b1]))) (tableaux (b+1) (r+1) (tryToClose (fs ++ [b2])))
+                            Saturated -> let bs = betas fs in case bs of
+                                                   Unsaturated (fs,[b1,b2]) -> branch (tableaux b (r+1) (tryToClose (fs ++ [b1]))) (tableaux b 0 (tryToClose (fs ++ [b2])))
                                                    Saturated -> FalseValue (values fs) b r
 
 tableaux' g p = let g' = map (\x -> T x) g
                     p' = F p
-                in tableaux 1 0 (Open (g' ++ [p']))
+                in tableaux 1 0 (tryToClose (g' ++ [p']))
 
 alphas fs = alphas' fs []
 alphas' [] _ = Saturated
@@ -55,6 +55,7 @@ beta _ = []
 tryToClose fs = if closed fs then Closed fs else Open fs
 
 closed [] = False
+closed (T Falsum:fs) = True
 closed (T f:fs) = if (filter (== (F f)) fs) /= [] then True else closed fs
 closed (F f:fs) = if (filter (== (T f)) fs) /= [] then True else closed fs
 
