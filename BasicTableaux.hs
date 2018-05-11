@@ -1,6 +1,7 @@
 import Head
 import Parser
 import PrefixParser
+import NotableFormulas
 
 -- main function, proves stuff
 prove a = do as <- parseFile a
@@ -18,6 +19,8 @@ proveFile (gs,p) = case p of
                       Right p -> case (extract gs) of
                                     Right s -> print (tableaux' (fold s) p)
                                     Left errs -> print errs
+
+proveNotable (gs,p) = tableaux' gs p
 
 -- b counts branches, r counts rules applied
 tableaux b r (Closed fs) = Proved b r
